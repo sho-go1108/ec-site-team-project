@@ -1,4 +1,5 @@
-﻿import { formatPrice } from '@/lib/money'
+'use client'
+import { formatPrice } from '@/lib/money'
 
 type CartItem = {
   product_id: number
