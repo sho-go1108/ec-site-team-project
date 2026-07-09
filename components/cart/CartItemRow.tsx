@@ -1,19 +1,12 @@
 'use client'
-import { formatPrice } from '@/lib/money'
 
-type CartItem = {
-  product_id: number
-  name: string
-  price: number
-  image_url: string
-  size: string
-  quantity: number
-}
+import type { CartItem } from '@/contexts/CartContext'
+import { formatPrice } from '@/lib/money'
 
 type CartItemRowProps = {
   item: CartItem
-  onUpdateQuantity: (productId: number, size: string, quantity: number) => void
-  onRemove: (productId: number, size: string) => void
+  onUpdateQuantity: (id: string, quantity: number) => void
+  onRemove: (id: string) => void
 }
 
 export function CartItemRow({
@@ -26,11 +19,11 @@ export function CartItemRow({
 
   const handleDecrease = () => {
     if (isMinQuantity) return
-    onUpdateQuantity(item.product_id, item.size, item.quantity - 1)
+    onUpdateQuantity(item.id, item.quantity - 1)
   }
 
   const handleIncrease = () => {
-    onUpdateQuantity(item.product_id, item.size, item.quantity + 1)
+    onUpdateQuantity(item.id, item.quantity + 1)
   }
 
   return (
@@ -81,7 +74,7 @@ export function CartItemRow({
 
           <button
             type="button"
-            onClick={() => onRemove(item.product_id, item.size)}
+            onClick={() => onRemove(item.id)}
             className="text-sm text-red-600 hover:underline"
           >
             削除
