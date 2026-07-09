@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { Providers } from './providers'
+import { AppHeader } from '@/components/AppHeader'
 
 export const metadata: Metadata = {
   title: 'XEDGE STORE',
@@ -18,7 +19,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {/* AuthProvider / CartProvider を全ページに提供する。
             共通ヘッダー/フッターは components/ に作成して、ここで <AppHeader /> 等を配置する想定。 */}
-        <Providers>{children}</Providers>
+        <Providers>
+          <AppHeader />
+          {children}
+        </Providers>
       </body>
     </html>
   )
