@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import type { CartItem } from '@/contexts/CartContext'
 import { formatPrice } from '@/lib/money'
 
@@ -28,9 +29,11 @@ export function CartItemRow({
 
   return (
     <div className="flex gap-4 border-b py-4">
-      <img
+      <Image
         src={item.image_url}
         alt={item.name}
+        width={96}
+        height={96}
         className="h-24 w-24 rounded object-cover"
       />
 
@@ -56,9 +59,10 @@ export function CartItemRow({
               type="button"
               onClick={handleDecrease}
               disabled={isMinQuantity}
-              className="h-8 w-8 rounded border disabled:cursor-not-allowed disabled:opacity-40"
+              aria-label={`${item.name}の数量を減らす`}
+              className="h-8 w-8 rounded border transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
             >
-              -
+              −
             </button>
 
             <span className="w-6 text-center">{item.quantity}</span>
@@ -66,7 +70,8 @@ export function CartItemRow({
             <button
               type="button"
               onClick={handleIncrease}
-              className="h-8 w-8 rounded border"
+              aria-label={`${item.name}の数量を増やす`}
+              className="h-8 w-8 rounded border transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black"
             >
               +
             </button>
@@ -75,7 +80,7 @@ export function CartItemRow({
           <button
             type="button"
             onClick={() => onRemove(item.id)}
-            className="text-sm text-red-600 hover:underline"
+            className="text-sm text-red-600 hover:underline focus:outline-none focus:ring-2 focus:ring-red-600"
           >
             削除
           </button>
