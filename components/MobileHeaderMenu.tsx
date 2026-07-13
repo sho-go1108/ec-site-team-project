@@ -72,23 +72,23 @@ export function MobileHeaderMenu({
               商品一覧
             </Link>
 
+            <Link
+              href="/cart"
+              onClick={onClose}
+              className="flex items-center gap-2 rounded px-3 py-3 transition-colors hover:bg-paper-soft"
+            >
+              <span>カート</span>
+
+              {/* カートが空のときはバッジを表示しない。 */}
+              {cartCount > 0 && (
+                <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1.5 text-[11px] font-bold leading-none text-paper">
+                  {cartBadge}
+                </span>
+              )}
+            </Link>
+
             {isLoggedIn ? (
               <>
-                <Link
-                  href="/cart"
-                  onClick={onClose}
-                  className="flex items-center gap-2 rounded px-3 py-3 transition-colors hover:bg-paper-soft"
-                >
-                  <span>カート</span>
-
-                  {/* カートが空のときはバッジを表示しない。 */}
-                  {cartCount > 0 && (
-                    <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1.5 text-[11px] font-bold leading-none text-paper">
-                      {cartBadge}
-                    </span>
-                  )}
-                </Link>
-
                 <Link
                   href="/orders"
                   onClick={onClose}

@@ -84,21 +84,21 @@ export function AppHeader() {
             商品一覧
           </Link>
 
+          <Link
+            href="/cart"
+            className="inline-flex items-center gap-0.5 transition-colors hover:text-muted"
+          >
+            <span>カート</span>
+
+            {displayCartCount > 0 && (
+              <span className="-mt-4 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1.5 text-[11px] font-bold leading-none text-paper">
+                {displayCartBadge}
+              </span>
+            )}
+          </Link>
+
           {loginState ? (
             <>
-              <Link
-                href="/cart"
-                className="inline-flex items-center gap-0.5 transition-colors hover:text-muted"
-              >
-                <span>カート</span>
-
-                {displayCartCount > 0 && (
-                  <span className="-mt-4 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1.5 text-[11px] font-bold leading-none text-paper">
-                    {displayCartBadge}
-                  </span>
-                )}
-              </Link>
-
               <Link href="/orders" className="transition-colors hover:text-muted">
                 注文履歴
               </Link>
