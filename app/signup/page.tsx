@@ -140,13 +140,16 @@ export default function SignupPage() {
 
     if (!parsed.success) {
       const errors = parsed.error.flatten().fieldErrors
-
       setFieldErrors({
         name: errors.name?.[0],
         email: errors.email?.[0],
         password: errors.password?.[0],
       })
-
+      // 最初のエラー項目へフォーカスを移し、キーボード・スクリーンリーダー利用者を修正位置へ誘導する。
+      const firstErrorField = FIELD_NAMES.find((field) => errors[field]?.[0])
+      if (firstErrorField) {
+        document.getElementById(firstErrorField)?.focus()
+      }
       return
     }
 
