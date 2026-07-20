@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { formatPrice } from "@/lib/money";
 import type { ProductSummary } from "@/lib/types";
@@ -17,6 +17,10 @@ const NO_IMAGE_SRC = "/assets/no-image.png";
 
 export function ProductCard({ product, priority = false }: ProductCardProps) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    setFailedSrc(null);
+  }, [product.id]);
 
   const normalizedImageUrl = product.image_url?.trim() ?? "";
   const preferredSrc =
