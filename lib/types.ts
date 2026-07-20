@@ -12,7 +12,7 @@ export type Size = 'S' | 'M' | 'L' | 'XL'
 export type ProductSort = 'price_asc' | 'price_desc' | 'newest'
 
 /** 注文ステータス */
-export type OrderStatus = 'ordered'
+export type OrderStatus = 'ordered' | 'shipped' | 'delivered'
 
 // ---------------------------------------------------------------------------
 // User
