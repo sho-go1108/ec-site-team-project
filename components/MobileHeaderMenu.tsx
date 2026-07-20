@@ -6,7 +6,6 @@ type MobileHeaderMenuProps = {
   isOpen: boolean
   isLoggedIn: boolean
   cartCount: number
-  cartBadge: string
   onToggle: () => void
   onClose: () => void
   onLogout: () => void
@@ -16,16 +15,17 @@ export function MobileHeaderMenu({
   isOpen,
   isLoggedIn,
   cartCount,
-  cartBadge,
   onToggle,
   onClose,
   onLogout,
 }: MobileHeaderMenuProps) {
+  const cartBadge = cartCount > 99 ? '99+' : cartCount.toString()
+
   return (
     <>
       <button
         type="button"
-        className="inline-flex h-10 w-10 items-center justify-center rounded border border-line text-ink transition-colors hover:bg-paper-soft sm:hidden"
+        className="inline-flex h-10 w-10 items-center justify-center rounded border border-line text-ink transition-colors hover:bg-paper-soft lg:hidden"
         aria-label="メニューを開閉"
         aria-controls="mobile-navigation"
         aria-expanded={isOpen}
@@ -53,7 +53,7 @@ export function MobileHeaderMenu({
       {isOpen && (
         <nav
           id="mobile-navigation"
-          className="absolute left-0 top-full w-full border-t border-line bg-paper px-4 py-3 text-sm font-medium shadow-sm sm:hidden"
+          className="absolute left-0 top-full w-full border-t border-line bg-paper px-4 py-3 text-sm font-medium shadow-sm lg:hidden"
         >
           <div className="flex flex-col">
             <Link
