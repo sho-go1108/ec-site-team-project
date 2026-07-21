@@ -5,6 +5,7 @@ import { formatPrice } from '@/lib/money'
 
 type OrderSummaryProps = {
   items: CartItem[]
+  totalPrice: number
   shippingFee?: number
   buttonLabel?: string
   onSubmit: () => void
@@ -13,17 +14,13 @@ type OrderSummaryProps = {
 
 export function OrderSummary({
   items,
+  totalPrice,
   shippingFee = 0,
   buttonLabel = '注文に進む',
   onSubmit,
   disabled = false,
 }: OrderSummaryProps) {
-  const subtotal = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0,
-  )
-
-  const total = subtotal + shippingFee
+  const total = totalPrice + shippingFee
   const isButtonDisabled = disabled || items.length === 0
 
   return (
@@ -60,7 +57,7 @@ export function OrderSummary({
         <div className="border-t pt-3">
           <div className="flex justify-between">
             <span>商品合計</span>
-            <span>{formatPrice(subtotal)}</span>
+            <span>{formatPrice(totalPrice)}</span>
           </div>
 
           <div className="mt-2 flex justify-between">
@@ -83,7 +80,7 @@ export function OrderSummary({
         type="button"
         onClick={onSubmit}
         disabled={isButtonDisabled}
-        className="mt-6 w-full rounded bg-black px-4 py-3 font-bold text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-black"
+        className="btn-primary mt-6 w-full"
       >
         {buttonLabel}
       </button>
