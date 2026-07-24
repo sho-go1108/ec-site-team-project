@@ -7,8 +7,9 @@ type OrderSummaryProps = {
   items: CartItem[]
   totalPrice: number
   shippingFee?: number
+  showButton?: boolean
   buttonLabel?: string
-  onSubmit: () => void
+  onSubmit?: () => void
   disabled?: boolean
 }
 
@@ -16,6 +17,7 @@ export function OrderSummary({
   items,
   totalPrice,
   shippingFee = 0,
+  showButton = true,
   buttonLabel = '注文に進む',
   onSubmit,
   disabled = false,
@@ -47,7 +49,7 @@ export function OrderSummary({
               className="flex justify-between gap-4 text-sm"
             >
               <span>
-                {item.name} × {item.quantity}
+                {item.name}（{item.size}） × {item.quantity}
               </span>
               <span>{formatPrice(item.price * item.quantity)}</span>
             </div>
@@ -76,14 +78,16 @@ export function OrderSummary({
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={onSubmit}
-        disabled={isButtonDisabled}
-        className="btn-primary mt-6 w-full"
-      >
-        {buttonLabel}
-      </button>
+      {showButton && onSubmit && (
+        <button
+          type="button"
+          onClick={onSubmit}
+          disabled={isButtonDisabled}
+          className="btn-primary mt-6 w-full"
+        >
+          {buttonLabel}
+        </button>
+      )}
     </section>
   )
 }
