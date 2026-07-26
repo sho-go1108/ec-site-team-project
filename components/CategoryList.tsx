@@ -1,13 +1,10 @@
-import CategoryFilter, {
-  type CategoryItem,
-  type CategorySlug,
-} from "@/components/CategoryFilter";
-import type { ProductSort } from "@/lib/types";
+import CategoryFilter from "@/components/CategoryFilter";
+import type { Category, ProductSort } from "@/lib/types";
 
 type CategoryListProps = {
-  selected?: CategorySlug;
+  selected?: string;
   sort?: ProductSort;
-  categories: readonly CategoryItem[];
+  categories: readonly Category[];
   className?: string;
 };
 
