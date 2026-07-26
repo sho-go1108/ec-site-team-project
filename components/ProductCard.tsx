@@ -2,7 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
+<<<<<<< HEAD
 import { useState } from "react";
+=======
+import { useEffect, useState } from "react";
+>>>>>>> origin/develop
 
 import { formatPrice } from "@/lib/money";
 import type { ProductSummary } from "@/lib/types";
@@ -12,6 +16,7 @@ type ProductCardProps = {
   priority?: boolean;
 };
 
+<<<<<<< HEAD
 // API画像が取得できない/未設定の場合のフォールバック画像
 const NO_IMAGE_SRC = "/assets/no-image.png";
 
@@ -23,6 +28,23 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
 
   // next/image の onError で差し替えるため、表示中srcをstate管理
   const [imageSrc, setImageSrc] = useState<string>(initialSrc);
+=======
+// フォールバック画像
+const NO_IMAGE_SRC = "/assets/no-image.png";
+
+export function ProductCard({ product, priority = false }: ProductCardProps) {
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    setFailedSrc(null);
+  }, [product.id]);
+
+  const normalizedImageUrl = product.image_url?.trim() ?? "";
+  const preferredSrc =
+    normalizedImageUrl.length > 0 ? normalizedImageUrl : NO_IMAGE_SRC;
+
+  const imageSrc = preferredSrc === failedSrc ? NO_IMAGE_SRC : preferredSrc;
+>>>>>>> origin/develop
 
   return (
     <Link
@@ -37,6 +59,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
           hover:-translate-y-1 hover:shadow-md
         "
       >
+<<<<<<< HEAD
         <div className="block rounded-md">
           <div className="relative mb-3 aspect-square w-full overflow-hidden rounded-md bg-muted">
             <Image
@@ -65,3 +88,29 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
     </Link>
   );
 }
+=======
+        <div className="relative mb-3 aspect-square w-full overflow-hidden rounded-md bg-muted">
+          <Image
+            src={imageSrc}
+            alt={product.name}
+            fill
+            priority={priority}
+            className="object-cover"
+            sizes="(max-width: 639px) 50vw, (max-width: 1023px) 33vw, 25vw"
+            onError={() => {
+              setFailedSrc(preferredSrc);
+            }}
+          />
+        </div>
+
+        <h3 className="line-clamp-1 text-base font-semibold text-ink">
+          {product.name}
+        </h3>
+        <p className="mt-2 text-lg font-bold text-ink">
+          {formatPrice(product.price)}
+        </p>
+      </article>
+    </Link>
+  );
+}
+>>>>>>> origin/develop

@@ -1,28 +1,17 @@
-import CategoryFilter, {
-  type CategoryItem,
-  type CategorySlug,
-  type ProductSort,
-} from "@/components/CategoryFilter";
-
-export const CATEGORY_ITEMS: readonly CategoryItem[] = [
-  { label: "全て", value: "all" },
-  { label: "トップス", value: "tops" },
-  { label: "インナー", value: "innerwear" },
-  { label: "アウター", value: "outerwear" },
-  { label: "パンツ", value: "pants" },
-] as const;
+import CategoryFilter from "@/components/CategoryFilter";
+import type { Category, ProductSort } from "@/lib/types";
 
 type CategoryListProps = {
-  selected?: CategorySlug;
+  selected?: string;
   sort?: ProductSort;
-  categories?: readonly CategoryItem[];
+  categories: readonly Category[];
   className?: string;
 };
 
 export default function CategoryList({
   selected = "all",
   sort = "newest",
-  categories = CATEGORY_ITEMS,
+  categories,
   className,
 }: CategoryListProps) {
   return (
