@@ -42,11 +42,13 @@ export function StatusDisplay({
       {visuallyHideTitle ? (
         <span className="sr-only">{title}</span>
       ) : (
-        <h2 className="text-lg font-semibold text-ink">{title}</h2>
+        <h2 className="whitespace-pre-line text-lg font-semibold text-ink">
+          {title}
+        </h2>
       )}
 
       {message ? (
-        <p className="mt-2 max-w-md text-sm leading-6 text-muted">
+        <p className="whitespace-pre-line mt-2 max-w-md text-sm leading-6 text-muted">
           {message}
         </p>
       ) : null}
