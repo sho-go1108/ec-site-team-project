@@ -56,6 +56,9 @@ function OrdersContent() {
   useEffect(() => {
     // RequireAuth通過後にユーザーIDが取れたタイミングで、注文履歴を取得する。
     if (userId === undefined) {
+      setOrders([])
+      setError('ユーザー情報を取得できませんでした。再度ログインしてください。')
+      setLoading(false)
       return
     }
 
