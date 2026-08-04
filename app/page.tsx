@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ProductCard } from "@/components/ProductCard";
 import CategoryList from "@/components/CategoryList";
-import { api } from "@/lib/apiClient";
+import { api, ApiRequestError } from "@/lib/apiClient";
 import type { Category, ProductSummary } from "@/lib/types";
 
 async function getCategories(): Promise<Category[]> {
@@ -71,12 +71,15 @@ export default async function HomePage() {
         </section>
       </main>
     );
-  } catch {
+  } catch (error: unknown) {
+    const message =
+      error instanceof ApiRequestError
+        ? "データの取得に失敗しました。時間をおいて再度お試しください。"
+        : "通信エラーが発生しました。時間をおいて再度お試しください。";
+
     return (
       <main className="mx-auto w-full max-w-[1200px] px-4 py-10 md:px-6 lg:px-8">
-        <p className="mb-4 text-red-600">
-          データの取得に失敗しました。時間をおいて再度お試しください。
-        </p>
+        <p className="mb-4 text-red-600">{message}</p>
         <Link href="/" className="inline-flex rounded-md border px-4 py-2">
           再読み込み
         </Link>
