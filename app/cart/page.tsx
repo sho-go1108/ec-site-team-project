@@ -11,7 +11,13 @@ import { useCart } from '@/contexts/CartContext'
 export default function CartPage() {
   const router = useRouter()
   const { user } = useAuth()
-  const { items, updateQuantity, removeItem, totalPrice } = useCart()
+  const {
+    items,
+    isReady,
+    updateQuantity,
+    removeItem,
+    totalPrice,
+  } = useCart()
 
   const handleCheckout = () => {
     if (!user) {
@@ -20,6 +26,15 @@ export default function CartPage() {
     }
 
     router.push('/checkout')
+  }
+
+  // localStorageの復元が終わるまでは、空カート判定を行わない
+  if (!isReady) {
+    return (
+      <PageLayout contentClassName="max-w-6xl">
+        <PageTitle title="カート" />
+      </PageLayout>
+    )
   }
 
   return (
