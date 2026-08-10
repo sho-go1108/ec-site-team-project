@@ -4,15 +4,19 @@ import CategoryList from "@/components/CategoryList";
 import { api, ApiRequestError } from "@/lib/apiClient";
 import type { Category, ProductSummary } from "@/lib/types";
 
+type RecommendedProductsResponse = {
+  products: ProductSummary[];
+};
+
 async function getCategories(): Promise<Category[]> {
   const data = await api.get<{ categories: Category[] }>("/api/categories");
   return data.categories;
 }
 
 async function getRecommendedProducts(): Promise<ProductSummary[]> {
-  const data = await api.get<{ products: ProductSummary[] }>(
-    "/api/products/recommended"
-  );
+  const data = await api.get<
+    RecommendedProductsResponse
+  >("/api/products/recommended");
   return data.products;
 }
 
