@@ -13,9 +13,11 @@ import type {
   Size,
 } from '@/lib/types'
 import { QuantityStepper } from '@/components/QuantityStepper'
+import { EmptyState, ErrorState, LoadingState } from '@/components/status'
 import { ToastContainer, type ToastItem } from '@/components/Toast'
 
 const NO_IMAGE_SRC = '/assets/no-image.png'
+type ProductErrorType = 'not-found' | 'fetch-failed' | null
 
 export default function ProductDetailPage() {
   const params = useParams<{ id: string }>()
@@ -23,11 +25,12 @@ export default function ProductDetailPage() {
 
   const [product, setProduct] = useState<ProductDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [errorType, setErrorType] = useState<ProductErrorType>(null)
   const [selectedSize, setSelectedSize] = useState<Size | null>(null)
   const [quantity, setQuantity] = useState(1)
   const [toasts, setToasts] = useState<ToastItem[]>([])
   const [imageError, setImageError] = useState(false)
+  const [retryKey, setRetryKey] = useState(0)
 
   function getAvailableQuantity(sizeStock: ProductSizeStock) {
     if (!product) return 0
@@ -55,7 +58,7 @@ export default function ProductDetailPage() {
       setQuantity(1)
       setImageError(false)
       setIsLoading(true)
-      setErrorMessage(null)
+      setErrorType(null)
 
       try {
         const data = await api.get<ProductResponse>(`/api/products/${params.id}`)
@@ -66,12 +69,12 @@ export default function ProductDetailPage() {
 
         if (error instanceof ApiRequestError) {
           if (error.status === 404 || error.code === 'NOT_FOUND') {
-            setErrorMessage('商品が見つかりません')
+            setErrorType('not-found')
           } else {
-            setErrorMessage(error.message)
+            setErrorType('fetch-failed')
           }
         } else {
-          setErrorMessage('商品の取得に失敗しました')
+          setErrorType('fetch-failed')
         }
       } finally {
         if (isActive) setIsLoading(false)
@@ -81,7 +84,7 @@ export default function ProductDetailPage() {
     fetchProduct()
 
     return () => { isActive = false }
-  }, [params.id])
+  }, [params.id, retryKey])
 
   const handleCloseToast = useCallback((id: string) => {
     setToasts((currentToasts) => currentToasts.filter((toast) => toast.id !== id))
@@ -120,15 +123,36 @@ export default function ProductDetailPage() {
   }
 
   if (isLoading) {
-    return <p>読み込み中です...</p>
+    return (
+      <main className="container-app flex min-h-[calc(100vh-5rem)] items-center py-8">
+        <LoadingState message="商品を読み込んでいます" />
+      </main>
+    )
   }
 
-  if (errorMessage) {
-    return <p>{errorMessage}</p>
+  if (errorType === 'fetch-failed') {
+    return (
+      <main className="container-app flex min-h-[calc(100vh-5rem)] items-center py-8">
+        <ErrorState
+          title="商品の取得に失敗しました"
+          message="時間をおいて、もう一度お試しください。"
+          onRetry={() => setRetryKey((currentKey) => currentKey + 1)}
+        />
+      </main>
+    )
   }
 
-  if (!product) {
-    return <p>商品が見つかりません</p>
+  if (errorType === 'not-found' || !product) {
+    return (
+      <main className="container-app flex min-h-[calc(100vh-5rem)] items-center py-8">
+        <EmptyState
+          title="商品が見つかりません"
+          message="指定された商品は存在しないか、現在表示できません。"
+          actionLabel="商品一覧へ戻る"
+          actionHref="/products"
+        />
+      </main>
+    )
   }
 
   return (
