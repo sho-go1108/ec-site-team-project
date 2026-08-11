@@ -48,7 +48,7 @@ export function EmptyState({
       title={title}
       message={message}
       action={
-        actionLabel && actionHref ? (
+        actionLabel !== undefined && actionHref !== undefined ? (
           <Link href={actionHref} className="btn-primary">
             {actionLabel}
           </Link>
