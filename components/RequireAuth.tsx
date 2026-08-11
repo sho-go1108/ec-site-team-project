@@ -29,7 +29,9 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   useEffect(() => {
     // localStorage の復元が終わるまで（isReady）は判定しない
     if (isReady && !isLoggedIn) {
-      router.replace(`/login?redirect=${encodeURIComponent(pathname)}`)
+      // ログイン後に画面の状態を復元できるよう、クエリとハッシュも戻り先に含める。
+      const redirectPath = `${pathname}${window.location.search}${window.location.hash}`
+      router.replace(`/login?redirect=${encodeURIComponent(redirectPath)}`)
     }
   }, [isReady, isLoggedIn, pathname, router])
 
