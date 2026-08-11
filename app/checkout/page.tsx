@@ -215,7 +215,12 @@ export default function CheckoutPage() {
                   className="flex flex-col gap-4 py-6 sm:flex-row sm:items-center"
                 >
                   <div className="relative h-24 w-24 shrink-0 overflow-hidden bg-gray-100">
-                    <div className="h-full w-full bg-gray-100" />
+                    <Image
+                      src={item.image_url}
+                      alt={item.name}
+                      fill
+                      className="object-cover"
+                    />
                   </div>
 
                   <div className="flex-1">
