@@ -2,11 +2,11 @@ import Link from "next/link";
 import { ProductCard } from "@/components/ProductCard";
 import CategoryList from "@/components/CategoryList";
 import { api, ApiRequestError } from "@/lib/apiClient";
-import type { Category, ProductSummary } from "@/lib/types";
-
-type RecommendedProductsResponse = {
-  products: ProductSummary[];
-};
+import type {
+  Category,
+  ProductSummary,
+  RecommendedProductsResponse,
+} from "@/lib/types";
 
 async function getCategories(): Promise<Category[]> {
   const data = await api.get<{ categories: Category[] }>("/api/categories");
