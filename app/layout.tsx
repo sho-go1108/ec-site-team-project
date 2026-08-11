@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
+import { AppFooter } from '@/components/AppFooter'
 import { Providers } from './providers'
 import { AppHeader } from '@/components/AppHeader'
 
@@ -20,8 +21,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* AuthProvider / CartProvider を全ページに提供する。
             共通ヘッダー/フッターは components/ に作成して、ここで <AppHeader /> 等を配置する想定。 */}
         <Providers>
-          <AppHeader />
-          {children}
+          <div className="flex min-h-screen flex-col">
+            <AppHeader />
+            <div className="flex-1">{children}</div>
+            <AppFooter />
+          </div>
         </Providers>
       </body>
     </html>
