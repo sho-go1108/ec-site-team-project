@@ -1,7 +1,8 @@
 ﻿'use client'
 
 import Image from 'next/image'
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useRouter } from 'next/navigation'
 import { RequireAuth } from '@/components/RequireAuth'
 import { FormError } from '@/components/form/FormError'
 import { SubmitButton } from '@/components/form/SubmitButton'
@@ -21,8 +22,17 @@ import {
 type ShippingErrors = Partial<Record<keyof ShippingInput, string>>
 
 export default function CheckoutPage() {
+  const router = useRouter()
   const { user } = useAuth()
-  const { items, totalPrice, clearCart } = useCart()
+  const {
+    items,
+    isReady,
+    totalPrice,
+    clearCart,
+  } = useCart()
+
+  // 注文成功後のclearCartによる空カートリダイレクトを防ぐ
+  const isCompletingOrder = useRef(false)
 
   const [shipping, setShipping] = useState<ShippingInput>({
     shipping_name: '',
@@ -35,6 +45,7 @@ export default function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
 
+  // ログインユーザーの情報を配送先の初期値として設定
   useEffect(() => {
     if (!user) return
 
@@ -45,6 +56,16 @@ export default function CheckoutPage() {
       shipping_phone: user.phone ?? '',
     })
   }, [user])
+
+  // localStorageの復元完了後、カートが空ならS06へ戻す
+  useEffect(() => {
+    if (!isReady) return
+    if (isCompletingOrder.current) return
+
+    if (items.length === 0) {
+      router.replace('/cart')
+    }
+  }, [isReady, items.length, router])
 
   const updateField = (
     field: keyof ShippingInput,
@@ -124,6 +145,8 @@ export default function CheckoutPage() {
 
       await api.post<unknown>('/api/orders', requestBody)
 
+      // clearCart後の空カート判定で/cartへ戻らないようにする
+      isCompletingOrder.current = true
       clearCart()
 
       // S08実装後に注文完了画面への遷移へ置き換える
