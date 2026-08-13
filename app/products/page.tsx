@@ -3,14 +3,13 @@ import { ProductCard } from "@/components/ProductCard";
 import CategoryList from "@/components/CategoryList";
 import Pagination from "@/components/Pagination";
 import { ApiRequestError, api } from "@/lib/apiClient";
-import type { Category, ProductSummary, ProductSort } from "@/lib/types";
 
-type ProductsResponse = {
-  products: ProductSummary[];
-  total: number;
-  page: number;
-  limit: number;
-};
+import type {
+  CategoriesResponse,
+  ProductsResponse,
+  ProductSort,
+} from "@/lib/types";
+
 
 type SearchParams = {
   category?: string;
@@ -52,8 +51,8 @@ function createProductsPath(params: {
   return qs ? `/products?${qs}` : "/products";
 }
 
-async function getCategories(): Promise<Category[]> {
-  const data = await api.get<{ categories: Category[] }>("/api/categories");
+async function getCategories(): Promise<CategoriesResponse["categories"]> {
+  const data = await api.get<CategoriesResponse>("/api/categories");
   return data.categories;
 }
 
@@ -79,10 +78,10 @@ async function getProducts(params: {
 export default async function ProductsPage({
   searchParams,
 }: {
-  searchParams?: SearchParams;
+  searchParams?: Promise<SearchParams>;
 }) {
   try {
-    const sp = searchParams ?? {};
+    const sp = (await searchParams) ?? {};
     const currentCategory = sp.category ?? "all";
     const currentSort = normalizeSort(sp.sort);
     const currentPage = normalizePage(sp.page);
@@ -97,7 +96,7 @@ export default async function ProductsPage({
       }),
     ]);
 
-    const totalPages = Math.max(1, Math.ceil(productsRes.total / productsRes.limit));
+    const totalPages = productsRes.pagination.total_pages;
 
     return (
       <main className="mx-auto w-full max-w-[1200px] px-4 py-6 md:px-6 lg:px-8">
@@ -122,7 +121,7 @@ export default async function ProductsPage({
         </section>
 
         <section className="mb-6 flex items-center justify-between gap-3">
-          <p className="text-sm text-ink/80">全 {productsRes.total} 件</p>
+          <p className="text-sm text-ink/80">全 {productsRes.pagination.total_count} 件</p>
 
           <form action="/products" method="get" className="flex items-center gap-2">
             {currentCategory !== "all" ? (
@@ -166,7 +165,7 @@ export default async function ProductsPage({
             </ul>
 
             <Pagination
-              currentPage={productsRes.page}
+              currentPage={productsRes.pagination.current_page}
               totalPages={totalPages}
               createHref={(page) =>
                 createProductsPath({
@@ -180,14 +179,9 @@ export default async function ProductsPage({
         )}
       </main>
     );
-  } catch (error) {
-    const isApiError =
-      typeof error === "object" &&
-      error !== null &&
-      "name" in error &&
-      (error as { name: string }).name === "ApiRequestError";
-
-    const message = isApiError
+  } catch (error: unknown) {
+  const message =
+    error instanceof ApiRequestError
       ? "商品一覧の取得に失敗しました。（APIエラー）"
       : "商品一覧の取得に失敗しました。時間をおいて再度お試しください。";
 
