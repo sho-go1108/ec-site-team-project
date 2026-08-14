@@ -68,7 +68,8 @@ function OrdersDetailContent() {
         }
 
         if (caught instanceof ApiRequestError) {
-          if (caught.code === 'NOT_FOUND') {
+          // 形式不正のID（/orders/abc など）も「見つからない」として扱う
+          if (caught.code === 'NOT_FOUND' || caught.code === 'VALIDATION_ERROR') {
             setError('注文が見つかりません')
             return
           }
