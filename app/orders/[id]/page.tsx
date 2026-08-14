@@ -12,6 +12,7 @@ import { PageTitle } from '@/components/layout/PageTitle'
 import { api, ApiRequestError } from '@/lib/apiClient'
 import { formatPrice } from '@/lib/money'
 import type { OrderDetail, OrderResponse, OrderStatus } from '@/lib/types'
+import { useAuth } from '@/contexts/AuthContext'
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
   ordered: '注文済み',
@@ -45,6 +46,8 @@ function OrderStatusBadge({ status }: { status: OrderStatus }) {
 }
 
 function OrdersDetailContent() {
+  const { user } = useAuth()
+  const userId = user?.id
   const params = useParams<{ id: string }>()
   const [order, setOrder] = useState<OrderDetail | null>(null)
   const [loading, setLoading] = useState(true)
@@ -69,6 +72,12 @@ function OrdersDetailContent() {
       .get<OrderResponse>(`/api/orders/${orderId}`)
       .then((data) => {
         if (!isActive) {
+          return
+        }
+
+        if (data.order.user_id !== userId) {
+          setOrder(null)
+          setError('注文が見つかりません')
           return
         }
 
@@ -104,7 +113,7 @@ function OrdersDetailContent() {
     return () => {
       isActive = false
     }
-  }, [orderId])
+  }, [orderId, userId])
 
   if (loading) {
     return (
