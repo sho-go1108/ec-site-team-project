@@ -13,34 +13,13 @@ import { api, ApiRequestError } from '@/lib/apiClient'
 import { formatPrice } from '@/lib/money'
 import type { OrderDetail, OrderResponse, OrderStatus } from '@/lib/types'
 import { useAuth } from '@/contexts/AuthContext'
-
-const STATUS_LABELS: Record<OrderStatus, string> = {
-  ordered: '注文済み',
-  shipped: '発送済み',
-  delivered: '配達済み',
-}
-
-// 注文日は画面仕様に合わせて YYYY/MM/DD 形式で表示する。
-const dateFormatter = new Intl.DateTimeFormat('ja-JP', {
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-})
-
-function formatOrderDate(value: string): string {
-  const date = new Date(value)
-
-  if (Number.isNaN(date.getTime())) {
-    return value
-  }
-
-  return dateFormatter.format(date)
-}
+import { ORDER_STATUS_LABELS } from '@/lib/constants'
+import { formatOrderDate } from '@/lib/date'
 
 function OrderStatusBadge({ status }: { status: OrderStatus }) {
   return (
     <span className="inline-flex rounded border border-line bg-paper-soft px-3 py-1 text-sm font-semibold text-ink">
-      {STATUS_LABELS[status]}
+      {ORDER_STATUS_LABELS[status]}
     </span>
   )
 }
