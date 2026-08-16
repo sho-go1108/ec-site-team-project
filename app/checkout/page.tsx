@@ -1,23 +1,23 @@
 ﻿'use client'
 
-import Image from 'next/image'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { RequireAuth } from '@/components/RequireAuth'
 import { FormError } from '@/components/form/FormError'
 import { SubmitButton } from '@/components/form/SubmitButton'
 import { TextField } from '@/components/form/TextField'
+import { OrderSummary } from '@/components/cart/OrderSummary'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { PageTitle } from '@/components/layout/PageTitle'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCart } from '@/contexts/CartContext'
 import { api, ApiRequestError } from '@/lib/apiClient'
-import { formatPrice } from '@/lib/money'
 import {
   shippingSchema,
   type CreateOrderInput,
   type ShippingInput,
 } from '@/lib/schemas'
+import type { OrderResponse } from '@/lib/types'
 
 type ShippingErrors = Partial<Record<keyof ShippingInput, string>>
 
@@ -31,7 +31,6 @@ export default function CheckoutPage() {
     clearCart,
   } = useCart()
 
-  // 注文成功後のclearCartによる空カートリダイレクトを防ぐ
   const isCompletingOrder = useRef(false)
 
   const [shipping, setShipping] = useState<ShippingInput>({
@@ -45,7 +44,6 @@ export default function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
 
-  // ログインユーザーの情報を配送先の初期値として設定
   useEffect(() => {
     if (!user) return
 
@@ -57,7 +55,6 @@ export default function CheckoutPage() {
     })
   }, [user])
 
-  // localStorageの復元完了後、カートが空ならS06へ戻す
   useEffect(() => {
     if (!isReady) return
     if (isCompletingOrder.current) return
@@ -78,22 +75,16 @@ export default function CheckoutPage() {
 
     setShipping(next)
 
-    const result = shippingSchema.safeParse(next)
+    // 編集中のフィールドだけバリデーションする
+    const fieldSchema = shippingSchema.shape[field]
+    const result = fieldSchema.safeParse(value)
 
-    if (result.success) {
-      setErrors({})
-      return
-    }
-
-    const fieldErrors = result.error.flatten().fieldErrors
-
-    setErrors({
-      shipping_name: fieldErrors.shipping_name?.[0],
-      shipping_postal_code:
-        fieldErrors.shipping_postal_code?.[0],
-      shipping_address: fieldErrors.shipping_address?.[0],
-      shipping_phone: fieldErrors.shipping_phone?.[0],
-    })
+    setErrors((prev) => ({
+      ...prev,
+      [field]: result.success
+        ? undefined
+        : result.error.issues[0]?.message,
+    }))
   }
 
   const handleSubmit = async (
@@ -126,7 +117,7 @@ export default function CheckoutPage() {
     }
 
     if (items.length === 0) {
-      setFormError('カートに商品がありません。')
+      router.replace('/cart')
       return
     }
 
@@ -143,17 +134,28 @@ export default function CheckoutPage() {
     try {
       setIsSubmitting(true)
 
-      await api.post<unknown>('/api/orders', requestBody)
+      const response = await api.post<OrderResponse>(
+        '/api/orders',
+        requestBody,
+      )
 
-      // clearCart後の空カート判定で/cartへ戻らないようにする
       isCompletingOrder.current = true
       clearCart()
 
-      // S08実装後に注文完了画面への遷移へ置き換える
-      console.log('注文が完了しました。')
+      router.push(
+        `/checkout/complete?orderId=${response.order.id}`,
+      )
     } catch (error) {
       if (error instanceof ApiRequestError) {
-        setFormError(error.message)
+        const detailMessage = error.details
+          .map((detail) => detail.message)
+          .join(' / ')
+
+        setFormError(
+          detailMessage
+            ? `${error.message}：${detailMessage}`
+            : error.message,
+        )
         return
       }
 
@@ -161,6 +163,17 @@ export default function CheckoutPage() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  // localStorage復元前に空の注文フォームを描画しない
+  if (!isReady) {
+    return (
+      <RequireAuth>
+        <PageLayout contentClassName="max-w-6xl">
+          <PageTitle title="注文確認" />
+        </PageLayout>
+      </RequireAuth>
+    )
   }
 
   return (
@@ -227,52 +240,11 @@ export default function CheckoutPage() {
           </section>
 
           <section className="mt-12">
-            <h2 className="mb-6 text-xl font-bold">
-              注文内容
-            </h2>
-
-            <div className="divide-y border-y">
-              {items.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex flex-col gap-4 py-6 sm:flex-row sm:items-center"
-                >
-                  <div className="relative h-24 w-24 shrink-0 overflow-hidden bg-gray-100">
-                    <Image
-                      src={item.image_url}
-                      alt={item.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-
-                  <div className="flex-1">
-                    <p className="font-bold">
-                      {item.name}
-                    </p>
-
-                    <p className="mt-1 text-sm text-muted">
-                      サイズ：{item.size}
-                    </p>
-
-                    <p className="mt-1 text-sm text-muted">
-                      数量：{item.quantity}
-                    </p>
-                  </div>
-
-                  <p className="font-bold">
-                    {formatPrice(
-                      item.price * item.quantity,
-                    )}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-6 flex justify-between text-lg font-bold">
-              <span>合計金額</span>
-              <span>{formatPrice(totalPrice)}</span>
-            </div>
+            <OrderSummary
+              items={items}
+              totalPrice={totalPrice}
+              showButton={false}
+            />
 
             <div className="mt-8 space-y-4">
               <FormError message={formError} />
