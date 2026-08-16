@@ -11,31 +11,9 @@ import { PageTitle } from '@/components/layout/PageTitle'
 import { useAuth } from '@/contexts/AuthContext'
 import { api, ApiRequestError } from '@/lib/apiClient'
 import { formatPrice } from '@/lib/money'
-import type { OrderStatus, OrderSummary, OrdersResponse } from '@/lib/types'
-
-// APIの注文ステータスを、画面表示用の日本語ラベルに変換する。
-const STATUS_LABELS: Record<OrderStatus, string> = {
-  ordered: '注文済み',
-  shipped: '発送済み',
-  delivered: '配達済み',
-}
-
-const dateFormatter = new Intl.DateTimeFormat('ja-JP', {
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-})
-
-// APIから返る created_at を、注文日として表示しやすい日本向けの日付に整形する。
-function formatOrderDate(value: string): string {
-  const date = new Date(value)
-
-  if (Number.isNaN(date.getTime())) {
-    return value
-  }
-
-  return dateFormatter.format(date)
-}
+import type { OrderSummary, OrdersResponse } from '@/lib/types'
+import { ORDER_STATUS_LABELS } from '@/lib/constants'
+import { formatOrderDate } from '@/lib/date'
 
 // 注文履歴を仕様どおり「新しい注文が上」に並べ替える。
 function sortByNewest(orders: OrderSummary[]): OrderSummary[] {
@@ -164,7 +142,7 @@ function OrdersContent() {
               </div>
               <div>
                 <p className="text-xs font-semibold text-muted">ステータス</p>
-                <p className="mt-1">{STATUS_LABELS[order.status]}</p>
+                <p className="mt-1">{ORDER_STATUS_LABELS[order.status]}</p>
               </div>
             </div>
 
