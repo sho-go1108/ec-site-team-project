@@ -59,6 +59,8 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:8080'
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     ...init,
+    // APIデータは常に最新を取得する（fetch を含むルートを動的レンダリングに切り替える）
+    cache: 'no-store',
     headers: {
       'Content-Type': 'application/json',
       ...(init.headers ?? {}),
