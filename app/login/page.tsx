@@ -22,7 +22,37 @@ const INITIAL_VALUES: LoginInput = {
 }
 
 // 入力欄ごとのエラーメッセージを持つ型。エラーがない項目は undefined になる。
-type LoginFormErrors = Partial<Record<keyof LoginInput, string>>
+type LoginFormErrors = Partial<Record<keyof LoginInput, string | undefined>>
+
+// 一度でも検証対象になった入力欄を記録する型。入力途中のエラー表示を出しすぎないために使う。
+type TouchedFields = Partial<Record<keyof LoginInput, boolean>>
+
+// 送信時に全項目を検証済みとして扱うため、フォームの項目名をまとめて管理する。
+const FIELD_NAMES: Array<keyof LoginInput> = ['email', 'password']
+
+// Zodの検証結果を、各入力欄の下に表示しやすい形式へ変換する。
+function validateValues(values: LoginInput): LoginFormErrors {
+  const parsed = loginSchema.safeParse(values)
+
+  if (parsed.success) {
+    return {}
+  }
+
+  const errors = parsed.error.flatten().fieldErrors
+
+  return {
+    email: errors.email?.[0],
+    password: errors.password?.[0],
+  }
+}
+
+function validateField(
+  field: keyof LoginInput,
+  values: LoginInput,
+): string | undefined {
+  // スキーマを項目ごとに分けず、送信時と同じルールから対象項目の結果だけを取り出す。
+  return validateValues(values)[field]
+}
 
 function getRedirectPath() {
   // RequireAuth から /login?redirect=/checkout のように渡された戻り先を読む。
@@ -52,6 +82,7 @@ export default function LoginPage() {
   // values: 入力中の値、fieldErrors: 入力欄ごとのエラー、formError: フォーム全体のエラー。
   const [values, setValues] = useState<LoginInput>(INITIAL_VALUES)
   const [fieldErrors, setFieldErrors] = useState<LoginFormErrors>({})
+  const [touchedFields, setTouchedFields] = useState<TouchedFields>({})
   const [formError, setFormError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -68,19 +99,36 @@ export default function LoginPage() {
   }
 
   function updateField(field: keyof LoginInput, value: string) {
-    // 入力された項目だけを更新し、他の項目の値はそのまま残す。
-    setValues((current) => ({
-      ...current,
+    const nextValues: LoginInput = {
+      ...values,
       [field]: value,
-    }))
+    }
 
-    // 入力し直した項目のエラーは一度消して、再送信時に改めて検証する。
+    setValues(nextValues)
+    setFormError(null)
+
+    // 未操作の項目は入力途中にエラーを出さない。一度検証した項目だけ入力に合わせて再検証する。
+    if (!touchedFields[field] && !fieldErrors[field]) {
+      return
+    }
+
     setFieldErrors((current) => ({
       ...current,
-      [field]: undefined,
+      [field]: validateField(field, nextValues),
+    }))
+  }
+
+  function handleBlur(field: keyof LoginInput) {
+    // フォーカスが外れた時点で、その項目を初めて検証対象にする。
+    setTouchedFields((current) => ({
+      ...current,
+      [field]: true,
     }))
 
-    setFormError(null)
+    setFieldErrors((current) => ({
+      ...current,
+      [field]: validateField(field, values),
+    }))
   }
 
   async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
@@ -91,22 +139,35 @@ export default function LoginPage() {
       return
     }
 
-    setFieldErrors({})
     setFormError(null)
+
+    // 未操作の項目も含め、送信時にはすべての入力エラーを表示する。
+    const touchedAllFields = FIELD_NAMES.reduce<TouchedFields>(
+      (current, field) => ({
+        ...current,
+        [field]: true,
+      }),
+      {},
+    )
+
+    setTouchedFields(touchedAllFields)
 
     // APIへ送る前に、フロント側で zod のルールに合っているか確認する。
     const parsed = loginSchema.safeParse(values)
 
     if (!parsed.success) {
-      const errors = parsed.error.flatten().fieldErrors
+      const nextFieldErrors = validateValues(values)
 
-      setFieldErrors({
-        email: errors.email?.[0],
-        password: errors.password?.[0],
-      })
+      setFieldErrors(nextFieldErrors)
+
+      const firstErrorField = FIELD_NAMES.find((field) => nextFieldErrors[field])
+      if (firstErrorField) {
+        document.getElementById(firstErrorField)?.focus()
+      }
       return
     }
 
+    setFieldErrors({})
     setIsSubmitting(true)
 
     try {
@@ -180,6 +241,7 @@ export default function LoginPage() {
           value={values.email}
           error={fieldErrors.email}
           onChange={(value) => updateField('email', value)}
+          onBlur={() => handleBlur('email')}
           autoComplete="email"
         />
 
@@ -190,6 +252,7 @@ export default function LoginPage() {
           value={values.password}
           error={fieldErrors.password}
           onChange={(value) => updateField('password', value)}
+          onBlur={() => handleBlur('password')}
           autoComplete="current-password"
         />
 
