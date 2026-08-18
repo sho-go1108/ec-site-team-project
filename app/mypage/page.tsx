@@ -56,6 +56,12 @@ const FIELD_NAMES: ProfileFieldName[] = [
   'phone',
 ]
 
+const CLEARED_REGISTERED_FIELD_MESSAGES = {
+  postal_code: '登録済みの郵便番号は空欄にできません。',
+  address: '登録済みの住所は空欄にできません。',
+  phone: '登録済みの電話番号は空欄にできません。',
+} as const
+
 function displayValue(value: string | null | undefined): string {
   return value && value.trim().length > 0 ? value : EMPTY_LABEL
 }
@@ -100,6 +106,58 @@ function optionalValue(value: string): string | undefined {
   const trimmed = value.trim()
 
   return trimmed.length > 0 ? trimmed : undefined
+}
+
+function isClearedRegisteredValue(
+  currentValue: string | null | undefined,
+  nextValue: string,
+): boolean {
+  return (
+    currentValue !== null &&
+    currentValue !== undefined &&
+    currentValue.trim().length > 0 &&
+    nextValue.trim().length === 0
+  )
+}
+
+function validateClearedRegisteredField(
+  field: keyof ProfileFormValues,
+  user: User,
+  values: ProfileFormValues,
+): string | undefined {
+  if (
+    field === 'postal_code' &&
+    isClearedRegisteredValue(user.postal_code, values.postal_code)
+  ) {
+    return CLEARED_REGISTERED_FIELD_MESSAGES.postal_code
+  }
+
+  if (
+    field === 'address' &&
+    isClearedRegisteredValue(user.address, values.address)
+  ) {
+    return CLEARED_REGISTERED_FIELD_MESSAGES.address
+  }
+
+  if (
+    field === 'phone' &&
+    isClearedRegisteredValue(user.phone, values.phone)
+  ) {
+    return CLEARED_REGISTERED_FIELD_MESSAGES.phone
+  }
+
+  return undefined
+}
+
+function validateFieldForDisplay(
+  field: keyof ProfileFormValues,
+  values: ProfileFormValues,
+  user: User | null,
+): string | undefined {
+  return (
+    validateField(field, values) ??
+    (user ? validateClearedRegisteredField(field, user, values) : undefined)
+  )
 }
 
 function createUpdatePayload(values: ProfileFormValues): ProfileUpdatePayload {
@@ -250,7 +308,7 @@ function MyPageContent() {
 
     setFieldErrors((current) => ({
       ...current,
-      [field]: validateField(field, nextValues),
+      [field]: validateFieldForDisplay(field, nextValues, profileUser),
     }))
   }
 
@@ -263,7 +321,7 @@ function MyPageContent() {
 
     setFieldErrors((current) => ({
       ...current,
-      [field]: validateField(field, formValues),
+      [field]: validateFieldForDisplay(field, formValues, profileUser),
     }))
   }
 
@@ -291,6 +349,23 @@ function MyPageContent() {
       focusFirstErrorField(FIELD_NAMES, nextFieldErrors)
       return
     }
+
+    const clearedFieldErrors: ProfileFormErrors = {
+      postal_code: validateClearedRegisteredField(
+        'postal_code',
+        profileUser,
+        parsed.data,
+      ),
+      address: validateClearedRegisteredField('address', profileUser, parsed.data),
+      phone: validateClearedRegisteredField('phone', profileUser, parsed.data),
+    }
+
+    if (Object.values(clearedFieldErrors).some(Boolean)) {
+      setFieldErrors(clearedFieldErrors)
+      focusFirstErrorField(FIELD_NAMES, clearedFieldErrors)
+      return
+    }
+
 
     setFieldErrors({})
     setIsSubmitting(true)
