@@ -2,36 +2,26 @@
 
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Suspense, useEffect, useRef } from 'react'
+import { Suspense, useEffect } from 'react'
 import { RequireAuth } from '@/components/RequireAuth'
-import { useCart } from '@/contexts/CartContext'
 
 function OrderCompleteContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { items, clearCart } = useCart()
-  const hasClearedCart = useRef(false)
   const orderId = searchParams.get('orderId')
   const isValidOrderId = orderId !== null && /^[1-9]\d*$/.test(orderId)
 
   useEffect(() => {
     if (!isValidOrderId) {
       router.replace('/')
-      return
     }
-
-    // CartContext の localStorage 復元後、商品がある場合だけ一度クリアする。
-    if (!hasClearedCart.current && items.length > 0) {
-      clearCart()
-      hasClearedCart.current = true
-    }
-  }, [clearCart, isValidOrderId, items.length, router])
+  }, [isValidOrderId, router])
 
   if (!isValidOrderId) return null
 
   return (
-    <main className="container-app flex min-h-[calc(100vh-7.5rem)] items-center py-8">
-      <section className="mx-auto w-full max-w-xl -translate-y-8 text-center sm:-translate-y-12">
+    <main className="container-app py-20 sm:py-28">
+      <section className="mx-auto w-full max-w-xl text-center">
         <div className="flex items-center justify-center gap-3">
           <span
             aria-hidden="true"
