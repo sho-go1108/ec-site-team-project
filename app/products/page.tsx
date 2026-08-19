@@ -3,6 +3,8 @@ import { ProductCard } from "@/components/ProductCard";
 import CategoryList from "@/components/CategoryList";
 import Pagination from "@/components/Pagination";
 import { ApiRequestError, api } from "@/lib/apiClient";
+import { PageLayout } from "@/components/layout/PageLayout";
+import { PageTitle } from "@/components/layout/PageTitle";
 
 import type {
   CategoriesResponse,
@@ -104,21 +106,21 @@ export default async function ProductsPage({
         : "商品一覧の取得に失敗しました。時間をおいて再度お試しください。";
 
     return (
-      <main className="mx-auto w-full max-w-[1200px] px-4 py-10 md:px-6 lg:px-8">
+      <PageLayout>
         <p className="mb-4 text-red-600">{message}</p>
         <Link href="/products" className="inline-flex rounded-md border px-4 py-2">
           再読み込み
         </Link>
-      </main>
+      </PageLayout>
     );
   }
 
   const totalPages = productsRes.pagination.total_pages;
 
   return (
-    <main className="mx-auto w-full max-w-[1200px] px-4 py-6 md:px-6 lg:px-8">
+    <PageLayout>
       <header className="mb-6">
-        <h1 className="mb-2 text-2xl font-bold md:text-3xl">商品一覧</h1>
+        <PageTitle title="商品一覧" />
         <p className="text-sm text-ink/80">カテゴリや並び順で商品を絞り込めます。</p>
       </header>
 
@@ -194,6 +196,6 @@ export default async function ProductsPage({
           />
         </>
       )}
-    </main>
+    </PageLayout>
   );
 }
