@@ -4,27 +4,45 @@ import Image from 'next/image'
 import type { CartItem } from '@/contexts/CartContext'
 import { formatPrice } from '@/lib/money'
 
-type CartItemRowProps = {
-  item: CartItem
-  onUpdateQuantity: (id: string, quantity: number) => void
-  onRemove: (id: string) => void
+type CartItemRowViewItem = Pick<
+  CartItem,
+  'name' | 'price' | 'image_url' | 'size' | 'quantity'
+> & {
+  id: string | number
 }
 
-export function CartItemRow({
-  item,
-  onUpdateQuantity,
-  onRemove,
-}: CartItemRowProps) {
+type CartItemRowProps = {
+  item: CartItem
+  mode?: 'edit'
+  onUpdateQuantity: (id: string, quantity: number) => void
+  onRemove: (id: string) => void
+} | {
+  item: CartItemRowViewItem
+  mode: 'view'
+  onUpdateQuantity?: never
+  onRemove?: never
+}
+
+export function CartItemRow(props: CartItemRowProps) {
+  const { item } = props
   const subtotal = item.price * item.quantity
   const isMinQuantity = item.quantity <= 1
+  const isViewMode = props.mode === 'view'
 
   const handleDecrease = () => {
+    if (isViewMode) return
     if (isMinQuantity) return
-    onUpdateQuantity(item.id, item.quantity - 1)
+    props.onUpdateQuantity(props.item.id, props.item.quantity - 1)
   }
 
   const handleIncrease = () => {
-    onUpdateQuantity(item.id, item.quantity + 1)
+    if (isViewMode) return
+    props.onUpdateQuantity(props.item.id, props.item.quantity + 1)
+  }
+
+  const handleRemove = () => {
+    if (isViewMode) return
+    props.onRemove(props.item.id)
   }
 
   return (
@@ -42,9 +60,14 @@ export function CartItemRow({
           <div>
             <h3 className="font-bold">{item.name}</h3>
             <p className="text-sm text-gray-500">サイズ：{item.size}</p>
-            <p className="text-sm text-gray-600">
-              単価：{formatPrice(item.price)}
-            </p>
+            {isViewMode && (
+              <p className="text-sm text-gray-500">数量：{item.quantity}</p>
+            )}
+            {!isViewMode && (
+              <p className="text-sm text-gray-600">
+                単価：{formatPrice(item.price)}
+              </p>
+            )}
           </div>
 
           <div className="text-right">
@@ -53,38 +76,40 @@ export function CartItemRow({
           </div>
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        {!isViewMode && (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleDecrease}
+                disabled={isMinQuantity}
+                aria-label={`${item.name}の数量を減らす`}
+                className="h-8 w-8 rounded border transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+              >
+                −
+              </button>
+
+              <span className="w-6 text-center">{item.quantity}</span>
+
+              <button
+                type="button"
+                onClick={handleIncrease}
+                aria-label={`${item.name}の数量を増やす`}
+                className="h-8 w-8 rounded border transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black"
+              >
+                +
+              </button>
+            </div>
+
             <button
               type="button"
-              onClick={handleDecrease}
-              disabled={isMinQuantity}
-              aria-label={`${item.name}の数量を減らす`}
-              className="h-8 w-8 rounded border transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+              onClick={handleRemove}
+              className="text-sm text-red-600 hover:underline focus:outline-none focus:ring-2 focus:ring-red-600"
             >
-              −
-            </button>
-
-            <span className="w-6 text-center">{item.quantity}</span>
-
-            <button
-              type="button"
-              onClick={handleIncrease}
-              aria-label={`${item.name}の数量を増やす`}
-              className="h-8 w-8 rounded border transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black"
-            >
-              +
+              削除
             </button>
           </div>
-
-          <button
-            type="button"
-            onClick={() => onRemove(item.id)}
-            className="text-sm text-red-600 hover:underline focus:outline-none focus:ring-2 focus:ring-red-600"
-          >
-            削除
-          </button>
-        </div>
+        )}
       </div>
     </div>
   )
