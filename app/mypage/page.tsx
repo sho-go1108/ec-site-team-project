@@ -125,28 +125,38 @@ function validateClearedRegisteredField(
   user: User,
   values: ProfileFormValues,
 ): string | undefined {
-  if (
-    field === 'postal_code' &&
-    isClearedRegisteredValue(user.postal_code, values.postal_code)
-  ) {
-    return CLEARED_REGISTERED_FIELD_MESSAGES.postal_code
+  // nameは必須項目でzod側のmin(1)が検証するため、このチェックの対象外。
+  if (field === 'name') {
+    return undefined
   }
 
-  if (
-    field === 'address' &&
-    isClearedRegisteredValue(user.address, values.address)
-  ) {
-    return CLEARED_REGISTERED_FIELD_MESSAGES.address
-  }
+  return isClearedRegisteredValue(user[field], values[field])
+    ? CLEARED_REGISTERED_FIELD_MESSAGES[field]
+    : undefined
+}
 
-  if (
-    field === 'phone' &&
-    isClearedRegisteredValue(user.phone, values.phone)
-  ) {
-    return CLEARED_REGISTERED_FIELD_MESSAGES.phone
+function validateClearedRegisteredFields(
+  user: User,
+  values: ProfileFormValues,
+): ProfileFormErrors {
+  return {
+    postal_code: validateClearedRegisteredField('postal_code', user, values),
+    address: validateClearedRegisteredField('address', user, values),
+    phone: validateClearedRegisteredField('phone', user, values),
   }
+}
 
-  return undefined
+function mergeFieldErrors(
+  primary: ProfileFormErrors,
+  secondary: ProfileFormErrors,
+): ProfileFormErrors {
+  return FIELD_NAMES.reduce<ProfileFormErrors>(
+    (merged, field) => ({
+      ...merged,
+      [field]: primary[field] ?? secondary[field],
+    }),
+    {},
+  )
 }
 
 function validateFieldForDisplay(
@@ -342,30 +352,23 @@ function MyPageContent() {
 
     const parsed = profileUpdateSchema.safeParse(formValues)
 
-    if (!parsed.success) {
-      const nextFieldErrors = validateValues(formValues)
+    const zodFieldErrors = parsed.success ? {} : validateValues(formValues)
+    const clearedFieldErrors = validateClearedRegisteredFields(
+      profileUser,
+      formValues,
+    )
+    const nextFieldErrors = mergeFieldErrors(zodFieldErrors, clearedFieldErrors)
+
+    if (Object.values(nextFieldErrors).some(Boolean)) {
       setFieldErrors(nextFieldErrors)
       // 最初のエラー項目へフォーカスを移し、キーボード・スクリーンリーダー利用者を修正位置へ誘導する。
       focusFirstErrorField(FIELD_NAMES, nextFieldErrors)
       return
     }
 
-    const clearedFieldErrors: ProfileFormErrors = {
-      postal_code: validateClearedRegisteredField(
-        'postal_code',
-        profileUser,
-        parsed.data,
-      ),
-      address: validateClearedRegisteredField('address', profileUser, parsed.data),
-      phone: validateClearedRegisteredField('phone', profileUser, parsed.data),
-    }
-
-    if (Object.values(clearedFieldErrors).some(Boolean)) {
-      setFieldErrors(clearedFieldErrors)
-      focusFirstErrorField(FIELD_NAMES, clearedFieldErrors)
+    if (!parsed.success) {
       return
     }
-
 
     setFieldErrors({})
     setIsSubmitting(true)
