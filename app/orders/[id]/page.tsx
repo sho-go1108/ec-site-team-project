@@ -3,10 +3,10 @@
  */
 'use client'
 
-import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { RequireAuth } from '@/components/RequireAuth'
+import { CartItemRow } from '@/components/cart/CartItemRow'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { PageTitle } from '@/components/layout/PageTitle'
 import { api, ApiRequestError } from '@/lib/apiClient'
@@ -166,42 +166,22 @@ function OrdersDetailContent() {
               注文商品がありません。
             </p>
           ) : (
-            <ul className="mt-4 divide-y divide-line rounded border border-line bg-paper">
+            <div className="mt-4">
               {order.items.map((item) => (
-                <li
-                  className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:p-5"
+                <CartItemRow
                   key={item.id}
-                >
-                  <Image
-                    src={item.product_image_url}
-                    alt={item.product_name}
-                    width={96}
-                    height={96}
-                    className="h-24 w-24 rounded border border-line bg-paper-soft object-cover"
-                  />
-
-                  <div className="flex flex-1 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <h3 className="font-bold">{item.product_name}</h3>
-                      {/* 商品情報は現在の商品マスタではなく、注文時点のスナップショットを表示する。 */}
-                      <p className="mt-2 text-sm text-muted">
-                        サイズ：{item.size}
-                      </p>
-                      <p className="mt-1 text-sm text-muted">
-                        数量：{item.quantity}
-                      </p>
-                    </div>
-
-                    <div className="sm:text-right">
-                      <p className="text-xs font-semibold text-muted">小計</p>
-                      <p className="mt-1 font-bold">
-                        {formatPrice(item.price * item.quantity)}
-                      </p>
-                    </div>
-                  </div>
-                </li>
+                  mode="view"
+                  item={{
+                    id: item.id,
+                    name: item.product_name,
+                    price: item.price,
+                    image_url: item.product_image_url,
+                    size: item.size,
+                    quantity: item.quantity,
+                  }}
+                />
               ))}
-            </ul>
+            </div>
           )}
         </section>
 
