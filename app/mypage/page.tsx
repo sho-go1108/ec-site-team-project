@@ -14,6 +14,7 @@ import {
 } from '@/lib/formValidation'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { PageTitle } from '@/components/layout/PageTitle'
+import { EmptyState, ErrorState, LoadingState } from '@/components/status'
 import { useAuth } from '@/contexts/AuthContext'
 import { api, ApiRequestError } from '@/lib/apiClient'
 import { profileUpdateSchema } from '@/lib/schemas'
@@ -417,30 +418,22 @@ function MyPageContent() {
   }
 
   if (loading) {
-    return (
-      <p className="rounded border border-line bg-paper-soft p-6 text-center text-muted">
-        読み込み中です。
-      </p>
-    )
+    return <LoadingState />
   }
 
   if (loadError) {
     return (
-      <p
-        className="rounded border border-danger bg-paper p-6 text-center text-danger"
-        role="alert"
-      >
-        {loadError}
-      </p>
+      <ErrorState
+        title="ユーザー情報を読み込めませんでした"
+        message={loadError}
+        retryLabel="再読み込み"
+        reload
+      />
     )
   }
 
   if (!profileUser) {
-    return (
-      <p className="rounded border border-line bg-paper-soft p-6 text-center text-muted">
-        ユーザー情報がありません。
-      </p>
-    )
+    return <EmptyState title="ユーザー情報がありません" />
   }
 
   return (

@@ -9,6 +9,7 @@ import { TextField } from '@/components/form/TextField'
 import { OrderSummary } from '@/components/cart/OrderSummary'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { PageTitle } from '@/components/layout/PageTitle'
+import { LoadingState } from '@/components/status'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCart } from '@/contexts/CartContext'
 import { api, ApiRequestError } from '@/lib/apiClient'
@@ -171,6 +172,7 @@ export default function CheckoutPage() {
       <RequireAuth>
         <PageLayout contentClassName="max-w-6xl">
           <PageTitle title="注文確認" />
+          <LoadingState />
         </PageLayout>
       </RequireAuth>
     )

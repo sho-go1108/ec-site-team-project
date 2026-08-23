@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { RequireAuth } from '@/components/RequireAuth'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { PageTitle } from '@/components/layout/PageTitle'
+import { EmptyState, ErrorState, LoadingState } from '@/components/status'
 import { useAuth } from '@/contexts/AuthContext'
 import { api, ApiRequestError } from '@/lib/apiClient'
 import { formatPrice } from '@/lib/money'
@@ -85,34 +86,29 @@ function OrdersContent() {
   // API側の並び順に依存せず、画面側でも仕様どおり新しい順にそろえる。
   const sortedOrders = useMemo(() => sortByNewest(orders), [orders])
 
-  // ローディング・エラー・0件・通常表示の順に画面状態を分岐する。（※共通コンポーネント完成後差し替え）
+  // ローディング・エラー・0件・通常表示の順に画面状態を分岐する。
   if (loading) {
-    return (
-      <p className="rounded border border-line bg-paper-soft p-6 text-center text-muted">
-        読み込み中です。
-      </p>
-    )
+    return <LoadingState />
   }
 
   if (error) {
     return (
-      <p
-        className="rounded border border-danger bg-paper p-6 text-center text-danger"
-        role="alert"
-      >
-        {error}
-      </p>
+      <ErrorState
+        title="注文履歴を読み込めませんでした"
+        message={error}
+        retryLabel="再読み込み"
+        reload
+      />
     )
   }
 
   if (sortedOrders.length === 0) {
     return (
-      <div className="rounded border border-line bg-paper-soft p-6 text-center">
-        <p className="text-muted">注文履歴がありません</p>
-        <Link className="btn-primary mt-6" href="/products">
-          商品一覧へ
-        </Link>
-      </div>
+      <EmptyState
+        title="注文履歴がありません"
+        actionLabel="商品一覧へ"
+        actionHref="/products"
+      />
     )
   }
 

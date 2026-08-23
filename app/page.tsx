@@ -1,6 +1,8 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { ProductCard } from "@/components/ProductCard";
 import CategoryList from "@/components/CategoryList";
+import { EmptyState, ErrorState, LoadingState } from "@/components/status";
 import { api, ApiRequestError } from "@/lib/apiClient";
 import type {
   Category,
@@ -20,7 +22,7 @@ async function getRecommendedProducts(): Promise<ProductSummary[]> {
   return data.products;
 }
 
-export default async function HomePage() {
+async function HomeContent() {
   try {
     const [categories, recommendedProducts] = await Promise.all([
       getCategories(),
@@ -49,9 +51,7 @@ export default async function HomePage() {
         <section className="mb-10">
           <h2 className="mb-4 text-xl font-semibold">カテゴリ</h2>
           {visibleCategories.length === 0 ? (
-            <p className="text-sm text-ink/80">
-              表示できるカテゴリがありません。
-            </p>
+            <EmptyState title="表示できるカテゴリがありません" />
           ) : (
             <CategoryList categories={visibleCategories} />
           )}
@@ -60,9 +60,7 @@ export default async function HomePage() {
         <section>
           <h2 className="mb-4 text-xl font-semibold">おすすめ商品</h2>
           {recommendedProducts.length === 0 ? (
-            <p className="text-sm text-ink/80">
-              現在表示できるおすすめ商品はありません。
-            </p>
+            <EmptyState title="現在表示できるおすすめ商品はありません" />
           ) : (
             <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
               {recommendedProducts.map((product) => (
@@ -83,11 +81,27 @@ export default async function HomePage() {
 
     return (
       <main className="mx-auto w-full max-w-[1200px] px-4 py-10 md:px-6 lg:px-8">
-        <p className="mb-4 text-red-600">{message}</p>
-        <Link href="/" className="inline-flex rounded-md border px-4 py-2">
-          再読み込み
-        </Link>
+        <ErrorState
+          title="トップページを読み込めませんでした"
+          message={message}
+          retryLabel="再読み込み"
+          reload
+        />
       </main>
     );
   }
+}
+
+export default function HomePage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="mx-auto w-full max-w-[1200px] px-4 py-6 md:px-6 lg:px-8">
+          <LoadingState />
+        </main>
+      }
+    >
+      <HomeContent />
+    </Suspense>
+  );
 }
