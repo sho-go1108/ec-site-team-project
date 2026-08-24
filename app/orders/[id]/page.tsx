@@ -14,7 +14,7 @@ import { api, ApiRequestError } from '@/lib/apiClient'
 import { formatPrice } from '@/lib/money'
 import type { OrderDetail, OrderResponse, OrderStatus } from '@/lib/types'
 import { useAuth } from '@/contexts/AuthContext'
-import { ORDER_STATUS_LABELS } from '@/lib/constants'
+import { ORDER_NOT_FOUND_MESSAGE, ORDER_STATUS_LABELS } from '@/lib/constants'
 import { formatOrderDate } from '@/lib/date'
 
 function OrderStatusBadge({ status }: { status: OrderStatus }) {
@@ -57,7 +57,7 @@ function OrdersDetailContent() {
 
         if (data.order.user_id !== userId) {
           setOrder(null)
-          setError('注文が見つかりません')
+          setError(ORDER_NOT_FOUND_MESSAGE)
           return
         }
 
@@ -71,7 +71,7 @@ function OrdersDetailContent() {
         if (caught instanceof ApiRequestError) {
           // 形式不正のID（/orders/abc など）も「見つからない」として扱う
           if (caught.code === 'NOT_FOUND' || caught.code === 'VALIDATION_ERROR') {
-            setError('注文が見つかりません')
+            setError(ORDER_NOT_FOUND_MESSAGE)
             return
           }
 
@@ -105,11 +105,15 @@ function OrdersDetailContent() {
     )
   }
 
-  if (error === '注文が見つかりません') {
+  if (error === ORDER_NOT_FOUND_MESSAGE) {
     return (
       <>
         <PageTitle title="注文詳細" />
-        <EmptyState title="注文が見つかりません" />
+        <EmptyState
+          title={ORDER_NOT_FOUND_MESSAGE}
+          actionLabel="注文履歴へ"
+          actionHref="/orders"
+        />
       </>
     )
   }

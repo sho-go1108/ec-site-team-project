@@ -80,7 +80,7 @@ async function HomeContent() {
         : "通信エラーが発生しました。時間をおいて再度お試しください。";
 
     return (
-      <main className="mx-auto w-full max-w-[1200px] px-4 py-10 md:px-6 lg:px-8">
+      <main className="mx-auto w-full max-w-[1200px] px-4 py-6 md:px-6 lg:px-8">
         <ErrorState
           title="トップページを読み込めませんでした"
           message={message}
