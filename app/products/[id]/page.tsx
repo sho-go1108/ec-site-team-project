@@ -60,6 +60,12 @@ export default function ProductDetailPage() {
       setIsLoading(true)
       setErrorType(null)
 
+      if (!/^[1-9]\d*$/.test(params.id)) {
+        setErrorType('not-found')
+        setIsLoading(false)
+        return
+      }
+
       try {
         const data = await api.get<ProductResponse>(`/api/products/${params.id}`)
 
@@ -108,7 +114,7 @@ export default function ProductDetailPage() {
       product_id: product.id,
       name: product.name,
       price: product.price,
-      image_url: product.image_url,
+      image_url: imageSrc,
       size: selectedSize,
       quantity: quantityToAdd,
     })
@@ -163,6 +169,7 @@ export default function ProductDetailPage() {
             src={imageSrc}
             alt={product.name}
             fill
+            priority
             sizes="(max-width: 767px) 100vw, 50vw"
             className="object-cover"
             onError={() => setImageError(true)}
