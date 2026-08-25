@@ -5,6 +5,7 @@ import Pagination from "@/components/Pagination";
 import { ApiRequestError, api } from "@/lib/apiClient";
 import { PageLayout } from "@/components/layout/PageLayout";
 import { PageTitle } from "@/components/layout/PageTitle";
+import { EmptyState, ErrorState } from "@/components/status";
 
 import type {
   CategoriesResponse,
@@ -102,15 +103,18 @@ export default async function ProductsPage({
   } catch (error: unknown) {
     const message =
       error instanceof ApiRequestError
-        ? "商品一覧の取得に失敗しました。（APIエラー）"
-        : "商品一覧の取得に失敗しました。時間をおいて再度お試しください。";
+        ? "時間をおいて、もう一度お試しください。"
+        : "通信エラーが発生しました。時間をおいて、もう一度お試しください。";
 
     return (
       <PageLayout>
-        <p className="mb-4 text-red-600">{message}</p>
-        <Link href="/products" className="inline-flex rounded-md border px-4 py-2">
-          再読み込み
-        </Link>
+        <PageTitle title="商品一覧" />
+        <ErrorState
+          title="商品一覧を読み込めませんでした"
+          message={message}
+          retryLabel="再読み込み"
+          reload
+        />
       </PageLayout>
     );
   }
@@ -170,9 +174,7 @@ export default async function ProductsPage({
       </section>
 
       {productsRes.products.length === 0 ? (
-        <section className="rounded-lg border p-6">
-          <p className="text-sm text-ink/80">該当する商品がありません。</p>
-        </section>
+        <EmptyState title="該当する商品がありません" />
       ) : (
         <>
           <ul className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">

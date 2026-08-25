@@ -9,11 +9,12 @@ import { RequireAuth } from '@/components/RequireAuth'
 import { CartItemRow } from '@/components/cart/CartItemRow'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { PageTitle } from '@/components/layout/PageTitle'
+import { EmptyState, ErrorState, LoadingState } from '@/components/status'
 import { api, ApiRequestError } from '@/lib/apiClient'
 import { formatPrice } from '@/lib/money'
 import type { OrderDetail, OrderResponse, OrderStatus } from '@/lib/types'
 import { useAuth } from '@/contexts/AuthContext'
-import { ORDER_STATUS_LABELS } from '@/lib/constants'
+import { ORDER_NOT_FOUND_MESSAGE, ORDER_STATUS_LABELS } from '@/lib/constants'
 import { formatOrderDate } from '@/lib/date'
 
 function OrderStatusBadge({ status }: { status: OrderStatus }) {
@@ -56,7 +57,7 @@ function OrdersDetailContent() {
 
         if (data.order.user_id !== userId) {
           setOrder(null)
-          setError('注文が見つかりません')
+          setError(ORDER_NOT_FOUND_MESSAGE)
           return
         }
 
@@ -70,7 +71,7 @@ function OrdersDetailContent() {
         if (caught instanceof ApiRequestError) {
           // 形式不正のID（/orders/abc など）も「見つからない」として扱う
           if (caught.code === 'NOT_FOUND' || caught.code === 'VALIDATION_ERROR') {
-            setError('注文が見つかりません')
+            setError(ORDER_NOT_FOUND_MESSAGE)
             return
           }
 
@@ -99,9 +100,20 @@ function OrdersDetailContent() {
     return (
       <>
         <PageTitle title="注文詳細" />
-        <p className="rounded border border-line bg-paper-soft p-6 text-center text-muted">
-          読み込み中です。
-        </p>
+        <LoadingState />
+      </>
+    )
+  }
+
+  if (error === ORDER_NOT_FOUND_MESSAGE) {
+    return (
+      <>
+        <PageTitle title="注文詳細" />
+        <EmptyState
+          title={ORDER_NOT_FOUND_MESSAGE}
+          actionLabel="注文履歴へ"
+          actionHref="/orders"
+        />
       </>
     )
   }
@@ -110,11 +122,12 @@ function OrdersDetailContent() {
     return (
       <>
         <PageTitle title="注文詳細" />
-        <div className="rounded border border-danger bg-paper p-6 text-center">
-          <p className="text-danger" role="alert">
-            {error}
-          </p>
-        </div>
+        <ErrorState
+          title="注文詳細を読み込めませんでした"
+          message={error}
+          retryLabel="再読み込み"
+          reload
+        />
       </>
     )
   }
@@ -123,9 +136,7 @@ function OrdersDetailContent() {
     return (
       <>
         <PageTitle title="注文詳細" />
-        <div className="rounded border border-line bg-paper-soft p-6 text-center">
-          <p className="text-muted">注文情報がありません。</p>
-        </div>
+        <EmptyState title="注文情報がありません" />
       </>
     )
   }
@@ -162,9 +173,9 @@ function OrdersDetailContent() {
           <h2 className="text-xl font-bold">注文商品</h2>
 
           {order.items.length === 0 ? (
-            <p className="mt-4 rounded border border-line bg-paper-soft p-6 text-center text-muted">
-              注文商品がありません。
-            </p>
+            <div className="mt-4">
+              <EmptyState title="注文商品がありません" />
+            </div>
           ) : (
             <div className="mt-4">
               {order.items.map((item) => (

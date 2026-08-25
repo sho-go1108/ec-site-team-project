@@ -5,6 +5,7 @@ import { CartItemRow } from '@/components/cart/CartItemRow'
 import { OrderSummary } from '@/components/cart/OrderSummary'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { PageTitle } from '@/components/layout/PageTitle'
+import { EmptyState, LoadingState } from '@/components/status'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCart } from '@/contexts/CartContext'
 
@@ -33,6 +34,7 @@ export default function CartPage() {
     return (
       <PageLayout contentClassName="max-w-6xl">
         <PageTitle title="カート" />
+        <LoadingState />
       </PageLayout>
     )
   }
@@ -42,9 +44,11 @@ export default function CartPage() {
       <PageTitle title="カート" />
 
       {items.length === 0 ? (
-        <div className="py-16 text-center">
-          <p className="text-lg">カートに商品がありません</p>
-        </div>
+        <EmptyState
+          title="カートに商品がありません"
+          actionLabel="商品一覧へ"
+          actionHref="/products"
+        />
       ) : (
         <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
           <div>
